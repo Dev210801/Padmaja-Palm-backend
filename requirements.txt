@@ -18,7 +18,7 @@ pylint-django==2.5.3
 # Production
 python-decouple==3.8
 dj-database-url==2.1.0
-pillow==10.3.0
+pillow==11.1.0
 pyjwt==2.8.0
 
 # 
