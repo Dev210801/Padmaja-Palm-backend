@@ -18,7 +18,11 @@ urlpatterns = [
     path('logout/', logout_view, name='admin_logout'),
     path('get-csrf-token/', get_csrf_token_view, name='get_csrf_token'),
     path('check-user/', check_user, name='check_user'),
-    path('change-password/', change_password, name='change_password')
+    path('change-password/', change_password, name='change_password'),
+    path('storage/analytics/', storage_analytics, name='storage_analytics'),
+    # Admin-only signed downloads
+    path('download/image/<int:event_id>/<int:image_id>/', download_event_image, name='download_event_image'),
+    path('download/video/<int:event_id>/<int:video_id>/', download_event_video, name='download_event_video'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
