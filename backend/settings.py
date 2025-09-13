@@ -181,7 +181,8 @@ CORS_ALLOW_CREDENTIALS = True
 # Session settings
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG  # Only send over HTTPS in production
-SESSION_COOKIE_SAMESITE = 'Lax'  # Strict might break some OAuth flows
+# In production we need cross-site cookies (Netlify -> Render), so use SameSite=None
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in database
 SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
@@ -194,7 +195,8 @@ TOKEN_EXPIRED_AFTER_SECONDS = 1800 # 30 minutes
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 CSRF_COOKIE_SECURE = not DEBUG  # Only send over HTTPS in production
 CSRF_USE_SESSIONS = False  # Store CSRF token in cookie (needed for AJAX)
-CSRF_COOKIE_SAMESITE = 'Lax'
+# Align SameSite with session cookie policy for cross-site AJAX requests
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
 
 # Security headers
 SECURE_BROWSER_XSS_FILTER = True
