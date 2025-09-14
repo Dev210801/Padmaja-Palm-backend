@@ -712,17 +712,31 @@ def download_event_image(request, event_id, image_id):
     except EventImage.DoesNotExist:
         return JsonResponse({"error": "Image not found"}, status=404)
 
-    # Derive public_id from storage name (strip extension)
+    # Derive public_id and format from storage name
     name = img.image.name  # e.g., media/event-slug/images/file.jpg
-    public_id = os.path.splitext(name)[0]
-    # Generate short-lived signed URL for public upload resources
+    public_id, ext = os.path.splitext(name)
+    fmt = (ext.lstrip('.') or None) if ext else None
+
+    # Look up resource metadata to get the exact version/format
+    try:
+        info = cld_api.resource(public_id, resource_type='image', type='upload') if cld_api else {}
+    except Exception as e:
+        return JsonResponse({"error": f"Cloudinary lookup failed: {str(e)}"}, status=500)
+
+    version = info.get('version') if isinstance(info, dict) else None
+    format_hint = info.get('format') if isinstance(info, dict) else None
+
+    # Generate short-lived signed URL with correct version and format
+    import time as _time
     url, _ = cld_utils.cloudinary_url(
         public_id,
         resource_type='image',
         type='upload',
         sign_url=True,
         secure=True,
-        expires_at=int(__import__('time').time()) + 60,
+        version=version,
+        format=(format_hint or fmt),
+        expires_at=int(_time.time()) + 300,
         attachment=True,
     )
     return JsonResponse({"url": url})
@@ -745,14 +759,28 @@ def download_event_video(request, event_id, video_id):
         return JsonResponse({"error": "Video not found"}, status=404)
 
     name = vid.video.name  # e.g., media/event-slug/videos/file.mp4
-    public_id = os.path.splitext(name)[0]
+    public_id, ext = os.path.splitext(name)
+    fmt = (ext.lstrip('.') or None) if ext else None
+
+    # Look up resource metadata to get the exact version/format
+    try:
+        info = cld_api.resource(public_id, resource_type='video', type='upload') if cld_api else {}
+    except Exception as e:
+        return JsonResponse({"error": f"Cloudinary lookup failed: {str(e)}"}, status=500)
+
+    version = info.get('version') if isinstance(info, dict) else None
+    format_hint = info.get('format') if isinstance(info, dict) else None
+
+    import time as _time
     url, _ = cld_utils.cloudinary_url(
         public_id,
         resource_type='video',
         type='upload',
         sign_url=True,
         secure=True,
-        expires_at=int(__import__('time').time()) + 60,
+        version=version,
+        format=(format_hint or fmt),
+        expires_at=int(_time.time()) + 300,
         attachment=True,
     )
     return JsonResponse({"url": url})
